@@ -26,12 +26,14 @@ update: Msg -> Model -> Model
 update msg model = 
     case msg of
         UpdateReps reps ->
-            { model | repetitions = String.toInt reps }
+            { model | repetitions = Result.withDefault 0 (String.toInt reps) }
         UpdateWeight weight ->
-            { model | weight = String.toInt weight }
+            { model | weight = Result.withDefault 0 (String.toInt weight) }
 
 view: Model -> Html Msg
 view model =
     div []
     [ input [type_ "text", placeholder "repetitions", onInput UpdateReps ] []
+    , input [type_ "text", placeholder "weight", onInput UpdateWeight ] []
+    , text (toString model.oneRepMax)
     ]
