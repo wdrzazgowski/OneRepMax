@@ -1,6 +1,7 @@
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
+import Http
 
 main =
     Html.program { init = init, update = update, view = view, subscriptions = subscriptions }
@@ -13,13 +14,6 @@ type alias Model =
     , oneRepMax: Int
     }
 
-model: Model  
-model = 
-    { repetitions = 0
-    , weight = 0
-    ,oneRepMax = 0
-    }
-
 
 
 init: ( Model, Cmd Msg )
@@ -30,17 +24,29 @@ init =
 
 type Msg =
     UpdateReps String
-    | UpdateWeight String
+    | UpdateWeight String 
+    | UpdateORM Int
+
+
 
 update: Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
     case msg of
         UpdateReps reps ->
-            ( { model | repetitions = Result.withDefault 0 (String.toInt reps) }, Cmd.none )
+            ( { model 
+              | repetitions = Result.withDefault 0 (String.toInt reps)
+              }
+              , UpdateORM (recalculateORM model) )
         UpdateWeight weight ->
             ( { model | weight = Result.withDefault 0 (String.toInt weight) }, Cmd.none )
+        UpdateORM (Err _, orm) ->
+            ( { model | oneRepMax = orm }, Cmd.none )
 
-
+recalculateORM: Model -> Model
+recalculateORM model = 
+    { 
+        model | oneRepMax =  model.repetitions * model.weight
+    }
 
 subscriptions: Model -> Sub Msg
 subscriptions model = 
