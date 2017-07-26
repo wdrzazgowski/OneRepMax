@@ -1,6 +1,7 @@
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
+import Html.Events exposing (onClick)
 import Http
 
 main =
@@ -25,7 +26,8 @@ init =
 type Msg =
     UpdateReps String
     | UpdateWeight String 
-    | UpdateORM Int
+    | UpdateORM 
+
 
 
 
@@ -36,17 +38,28 @@ update msg model =
             ( { model 
               | repetitions = Result.withDefault 0 (String.toInt reps)
               }
-              , UpdateORM (recalculateORM model) )
+              , Cmd.none )
         UpdateWeight weight ->
-            ( { model | weight = Result.withDefault 0 (String.toInt weight) }, Cmd.none )
-        UpdateORM (Err _, orm) ->
-            ( { model | oneRepMax = orm }, Cmd.none )
+            ( 
+                { model 
+                | weight = Result.withDefault 0 (String.toInt weight)
+                }
+                , 
+                Cmd.none
+            )
+        UpdateORM ->
+            ( 
+                {
+                model 
+                | oneRepMax = recalculateORM model 
+                }, 
+                Cmd.none
+            )
 
-recalculateORM: Model -> Model
+recalculateORM: Model -> Int
 recalculateORM model = 
-    { 
-        model | oneRepMax =  model.repetitions * model.weight
-    }
+    model.repetitions * model.weight
+    
 
 subscriptions: Model -> Sub Msg
 subscriptions model = 
@@ -57,5 +70,6 @@ view model =
     div []
     [ input [type_ "text", placeholder "repetitions", onInput UpdateReps ] []
     , input [type_ "text", placeholder "weight", onInput UpdateWeight ] []
+    , button [ onClick UpdateORM ] [ text "Recalculate ORM" ]
     , text (toString model.oneRepMax)
     ]
